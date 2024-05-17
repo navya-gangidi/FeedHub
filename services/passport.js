@@ -31,20 +31,15 @@ passport.use(new GoogleStrategy({
     callbackURL: '/auth/google/callback',
     proxy: true
     //route that user will be redirected to after they grant permission to our application.
-}, (accessToken, refreshToken, profile, done) => {
-        User.findOne({googleId: profile.id})
-            .then((existingUser)=>{
-                if(existingUser){
-                    //we already have a user with that googleId
-                    done(null, existingUser);
-                }
-                else{
-                    //creating a record of new user inside the DB
-                    new User({ googleId : profile.id }).save()
-                    .then((user) => {
-                            done(null, user)
-                    });
-                }
-            });        
-    })
-);
+}, 
+   async (accessToken, refreshToken, profile, done) => {
+        const existingUser = await User.findOne({googleId: profile.id});
+        if(existingUser){
+            //we already have a user with that googleId
+            return done(null, existingUser);
+        }
+        //creating a record of new user inside the DB
+        const user = await new User({ googleId : profile.id }).save();
+        done(null, user);
+    }
+));
